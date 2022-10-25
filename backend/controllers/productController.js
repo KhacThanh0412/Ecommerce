@@ -1,28 +1,38 @@
 const Product = require("../models/productModel");
+const ErrorHander = require("../utils/errorhander");
+const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const ApiFeatures = require("../utils/apifeatures");
 
 // Create Product -- Admin
-exports.createProduct = async(req, res, next) => {
+exports.createProduct = catchAsyncErrors(async(req, res, next) => {
     const product = await Product.create(req.body);
 
     res.status(201).json({
         success: true,
         product,
     });
-};
+});
 
 //Get All Product
-exports.getAllProducts = async(req, res) => {
-    const products = await Product.find();
+exports.getAllProducts = catchAsyncErrors(async(req, res) => {
+    const resultPerPage = 5;
+    const productCount = await Product.countDocuments();
+
+    const apiFeature = ApiFeatures(Product.find(), req.query)
+        .search()
+        .filter()
+        .pagination(resultPerPage);
+    const products = await apiFeature.query;
 
     res.status(200).json({
         success: true,
         products,
     });
-};
+});
 
 // Get Product Details
 
-exports.getProductDetails = async(req, res, next) => {
+exports.getProductDetails = catchAsyncErrors(async(req, res, next) => {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -32,12 +42,13 @@ exports.getProductDetails = async(req, res, next) => {
     res.status(200).json({
         success: true,
         product,
+        productCount,
     });
-};
+});
 
 // Update Product -- Admin
 
-exports.updateProduct = async(req, res, next) => {
+exports.updateProduct = catchAsyncErrors(async(req, res, next) => {
     let product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -54,11 +65,11 @@ exports.updateProduct = async(req, res, next) => {
         success: true,
         product,
     });
-};
+});
 
 //Delete Products
 
-exports.deleteProduct = async(req, res, next) => {
+exports.deleteProduct = catchAsyncErrors(async(req, res, next) => {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
@@ -71,4 +82,4 @@ exports.deleteProduct = async(req, res, next) => {
         success: true,
         message: "Product Delete Successfully",
     });
-};
+});
